@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Re-MiMa Weather</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="wrapper">
+    <h1>🌤 Re-MiMa Weather</h1>
+
+    <form method="POST" class="form">
+
+        <select name="place" required>
+            <option value="" disabled selected>Select City</option>
+            {% for key, val in city_display.items() %}
+                <option value="{{key}}">{{val}}</option>
+            {% endfor %}
+        </select>
+
+        <input type="datetime-local" name="time" required>
+
+        <button type="submit">Predict</button>
+    </form>
+
+    {% if error %}
+        <div class="error">{{error}}</div>
+    {% endif %}
+
+    {% if results %}
+        <h2>⏱ Next 5 Hours Forecast</h2>
+
+        {% for r in results %}
+        <div class="card">
+            <h3>⏰ Hour: {{r.hour}}</h3>
+
+            <p>🌡 Temp: <strong>{{r.temperature}}</strong> °C</p>
+            <p>💧 Humidity: <strong>{{r.humidity}}</strong> %</p>
+            <p>🌧 Rainfall: <strong>{{r.rainfall}}</strong> mm</p>
+            <p>💨 Wind: <strong>{{r.wind}}</strong> km/h</p>
+
+            <h4>
+                {% if "Hot" in r.condition %}
+                    ☀️ Hot
+                {% elif "Cold" in r.condition %}
+                    ❄️ Cold
+                {% else %}
+                    🌤 Moderate
+                {% endif %}
+            </h4>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+</div>
+
+</body>
+</html>
