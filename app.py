@@ -1,5 +1,5 @@
 # =========================
-# Re-MiMa WEATHER - FINAL STABLE VERSION
+# Re-MiMa WEATHER - FINAL DEPLOYABLE VERSION
 # =========================
 import os
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
@@ -13,9 +13,9 @@ from datetime import datetime
 app = Flask(__name__)
 
 # =========================
-# PATH
+# FIXED PATH (IMPORTANT)
 # =========================
-BASE_DIR = r"D:\MAJOR_PROJECT\remima_weather_app"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_DIR = os.path.join(BASE_DIR, "model")
 
 # =========================
@@ -79,9 +79,11 @@ def re_mima_predict(place, month, hour):
         micro_features = features_map[f"{model_city}_micro"]
         macro_features = features_map[f"{model_city}_macro"]
 
+        # create input
         micro_input = pd.DataFrame([{f: 0 for f in micro_features}])
         macro_input = pd.DataFrame([{f: 0 for f in macro_features}])
 
+        # set features
         for df in [micro_input, macro_input]:
             if "Month" in df.columns:
                 df["Month"] = month
@@ -90,12 +92,15 @@ def re_mima_predict(place, month, hour):
             if "hour" in df.columns:
                 df["hour"] = hour
 
+        # predict micro
         X_micro = scalers[f"{model_city}_micro"].transform(micro_input)
         micro_pred = models[f"{model_city}_micro"].predict(X_micro)[0]
 
+        # predict macro
         X_macro = scalers[f"{model_city}_macro"].transform(macro_input)
         macro_pred = models[f"{model_city}_macro"].predict(X_macro)[0]
 
+        # adjustment
         adjust = {
             "chennai": 1.2,
             "pune": -0.8,
@@ -125,7 +130,6 @@ def index():
 
     if request.method == "POST":
         try:
-            # ✅ FIXED: Safe place handling
             place = request.form.get("place", "").strip().lower()
 
             if not place:
@@ -138,7 +142,6 @@ def index():
 
             dt = datetime.fromisoformat(time_str)
 
-            # ✅ YEAR CONDITION
             if dt.year < 2021 or dt.year > 2024:
                 return render_template("index.html", error="⚠️ Only 2021–2024 supported", city_display=city_display)
 
@@ -153,7 +156,6 @@ def index():
                 pred = re_mima_predict(place, month, future_hour)
 
                 if pred:
-                    # ✅ variation fix
                     temp = pred["temperature"] + (i * 0.4)
 
                     if last_temp:
